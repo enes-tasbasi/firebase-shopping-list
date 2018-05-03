@@ -1,8 +1,19 @@
 import React, {Component} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import fire from './fire';
+//import fire from './fire';
 import firebase from 'firebase';
+
+var config = {
+    apiKey: "AIzaSyBof6BZd5Ul_i3GXovYZi7vZBQ9aZe7PqU",
+    authDomain: "shopping-list-da394.firebaseapp.com",
+    databaseURL: "https://shopping-list-da394.firebaseio.com",
+    projectId: "shopping-list-da394",
+    storageBucket: "shopping-list-da394.appspot.com",
+    messagingSenderId: "381612330740"
+};
+
+var fire = firebase.initializeApp(config);
 
 class App extends Component {
     constructor(props) {
@@ -11,7 +22,9 @@ class App extends Component {
         this.state = {
             items: [],
             listItems: {},
-            current: ""
+            current: "",
+            loggedIn: false,
+            user: {}
         };
 
 
@@ -19,6 +32,9 @@ class App extends Component {
         this.componentWillMount = this.componentWillMount.bind(this);
         this.getListFromDatabase = this.getListFromDatabase.bind(this);
         this.add = this.add.bind(this);
+        this.login = this.login.bind(this);
+        this.logout = this.logout.bind(this);
+        this.renderLoginMessage = this.renderLoginMessage.bind(this);
     }
 
     getListFromDatabase(event) {
@@ -99,15 +115,39 @@ class App extends Component {
 
     login() {
 
-        const provider = new fire.auth().GoogleAuthProvider();
+        var provider = new firebase.auth.GoogleAuthProvider();
 
-        fire.auth.signInWithPopup(provider);
+        firebase.auth().signInWithPopup(provider).then((result) => {
+            var user = result.user;
+            this.setState({loggedIn: true, user: user});
+        }, (error) => {
+            alert("Error logging in: " + error.message);
+        });
+    }
+
+    logout() {
+        firebase.auth().signOut();
+        this.setState({loggedIn: false, user: {}});
+    }
+
+
+    renderLoginMessage() {
+        if(this.state.loggedIn === false) {
+            return  <button onClick={this.login} className="login-button">Log In</button>;
+        } else {
+            return (
+                <div className="login-message">
+                    <h3>Logged in as: {this.state.user.displayName}</h3>
+                    <button onClick={this.logout} className="login-button">Log out</button>
+                </div>
+            )
+        }
     }
 
     render() {
         return (
             <div>
-                <button onClick={this.login} className="login-button">Log In</button>
+                {this.renderLoginMessage()}
                 <div className="container">
                     <form>
                         <span>New item: </span>

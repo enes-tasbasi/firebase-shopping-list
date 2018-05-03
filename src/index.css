@@ -26,6 +26,14 @@ h1, h2, h3, h4, h5, p, li, span {
     background: #b486ff;
 }
 
+.login-message {
+    float: right;
+}
+
+.login-message h3 {
+    color: #a0bbe5;
+}
+
 .container {
     width: 24em;
     margin: auto;
