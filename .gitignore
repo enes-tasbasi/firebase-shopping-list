@@ -24,3 +24,4 @@ yarn-error.log*
 .idea/tasks.xml
 .idea/dictionaries/
 firebase-debug.log
+src/fireConfig.js
