@@ -18,6 +18,7 @@ firebase.auth().onAuthStateChanged(function(user) {
             var email = user.email;
             document.getElementById("message").innerHTML = email;
         }
+
     } else {
         document.getElementById("login_div").style.display = "block";
         document.getElementById("message_div").style.display = "none";

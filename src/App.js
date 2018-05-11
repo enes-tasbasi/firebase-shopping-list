@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
-import logo from './logo.svg';
 import './App.css';
-//import fire from './fire';
 import firebase from 'firebase';
+
 
 var config = {
     apiKey: "AIzaSyBof6BZd5Ul_i3GXovYZi7vZBQ9aZe7PqU",
@@ -24,7 +23,8 @@ class App extends Component {
             listItems: {},
             current: "",
             loggedIn: false,
-            user: {}
+            user: {},
+            databaseRef: "message"
         };
 
 
@@ -37,16 +37,22 @@ class App extends Component {
         this.renderLoginMessage = this.renderLoginMessage.bind(this);
     }
 
-    getListFromDatabase(event) {
-        event.preventDefault();
+    getListFromDatabase() {
 
-        let messagesRef = fire.database().ref('message');
+        let messagesRef = fire.database().ref(this.state.databaseRef);
         messagesRef.on('child_added', snapshot => {
             /* Update React state when message is added at Firebase Database */
             //let message = { text: snapshot.val(), id: snapshot.key };
+
+            var itemMap = new Map();
+            itemMap.set(snapshot.key, snapshot.val());
+
             var tempList = this.state.items.concat([snapshot.val()]);
-            this.setState({items: tempList});
+
+            tempList.reverse();
+            this.setState({items: tempList, listItems: itemMap});
         });
+
     }
 
     handleChange(event) {
@@ -55,37 +61,35 @@ class App extends Component {
 
     componentWillMount() {
 
-
-        let messagesRef = fire.database().ref('message').orderByKey().limitToLast(100);
-        var tempArr = this.state.items;
+        let messagesRef = fire.database().ref(this.state.databaseRef);
 
         var itemMap = new Map();
         messagesRef.on('child_added', snapshot => {
 
             itemMap.set(snapshot.key, snapshot.val());
 
-            //console.log(itemMap);
-
             var tempItem = this.state.items.concat([snapshot.val()]);
             tempItem.reverse();
             this.setState({items: tempItem, listItems: itemMap});
 
         });
-
-
     }
 
     add(event) {
         event.preventDefault();
 
-        let messagesRef = fire.database().ref('message');
+        let messagesRef = fire.database().ref(this.state.databaseRef);
 
-        var arrayvar = this.state.items.slice();
-        if (this.state.current != "") {
+        let arrayvar = this.state.items.slice();
+        if (this.state.current !== "") {
             arrayvar.push(this.state.current);
             this.setState({items: arrayvar});
 
-            messagesRef.push(this.state.current);
+            messagesRef.push(this.state.current).then((result) => {
+                //    console.log(result)
+            }, (err) => {
+                //   console.log(err)
+            });
 
 
             this.refs.input.value = '';
@@ -97,29 +101,36 @@ class App extends Component {
     remove(i, event) {
         event.preventDefault();
 
-        let messageRef = fire.database().ref('message');
+
+        let messageRef = fire.database().ref(this.state.databaseRef);
 
         var arrayVar = this.state.items.slice();
 
         var tempMap = this.state.listItems;
-        console.log(tempMap);
+
 
         tempMap.forEach(function (value, key) {
             if (arrayVar[i] === value) {
                 messageRef.child(key).remove();
+                tempMap.delete(value);
             }
         });
+
+        console.log(tempMap);
         arrayVar.splice(i, 1);
         this.setState({items: arrayVar});
     }
 
     login() {
 
-        var provider = new firebase.auth.GoogleAuthProvider();
+        let provider = new firebase.auth.GoogleAuthProvider();
 
         firebase.auth().signInWithPopup(provider).then((result) => {
-            var user = result.user;
-            this.setState({loggedIn: true, user: user});
+            let user = result.user;
+            console.log(user);
+
+            this.setState({loggedIn: true, user: user, items: [], listItems: { }, databaseRef: "users/" + user.uid + "/message"});
+            this.componentWillMount();
         }, (error) => {
             alert("Error logging in: " + error.message);
         });
@@ -127,13 +138,14 @@ class App extends Component {
 
     logout() {
         firebase.auth().signOut();
-        this.setState({loggedIn: false, user: {}});
+        this.setState({loggedIn: false, user: {}, items: [], listItems: {}, databaseRef: "message"});
+        this.componentWillMount();
     }
 
 
     renderLoginMessage() {
-        if(this.state.loggedIn === false) {
-            return  <button onClick={this.login} className="login-button">Log In</button>;
+        if (this.state.loggedIn === false) {
+            return <button onClick={this.login} className="login-button">Log In</button>;
         } else {
             return (
                 <div className="login-message">
