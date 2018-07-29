@@ -1,4 +1,6 @@
 import React, {Component} from 'react';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+
 import './App.css';
 import firebase from 'firebase';
 import config from './fireConfig';
@@ -150,6 +152,12 @@ class App extends Component {
     }
 
     render() {
+        const transitionOptions = {
+            transitionName: 'fade',
+            transitionEnterTimeout: 500,
+            transitionLeaveTimeout: 500
+        };
+
         return (
             <div>
                 {this.renderLoginMessage()}
@@ -168,6 +176,7 @@ class App extends Component {
                     </form>
                     <div>
                         <ul>
+                            <ReactCSSTransitionGroup {...transitionOptions}>
                             {this.state.items.map((item, i) => (
                                 <li key={i}>
                                     {item}
@@ -179,6 +188,7 @@ class App extends Component {
                                     />
                                 </li>
                             ))}
+                            </ReactCSSTransitionGroup>
                         </ul>
                     </div>
                 </div>

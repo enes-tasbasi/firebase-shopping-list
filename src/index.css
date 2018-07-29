@@ -129,3 +129,21 @@ li > button:hover {
 li > button:focus {
     outline: 0;
 }
+
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: .2s ease-in all;
+}
+
+.fade-leave {
+    opacity: 1;
+}
+
+.fade-leave-active {
+    opacity: 0;
+    transition: .2s ease-in all;
+}
